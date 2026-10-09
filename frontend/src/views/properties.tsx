@@ -31,7 +31,10 @@ export function PropertiesView() {
         <EmptyState title="No properties match the current filter" />
       ) : (
         <div className="space-y-6">
-          <ComparisonGrid data={data} />
+          <section aria-labelledby="property-cards">
+            <h2 id="property-cards" className="sr-only">Property cards</h2>
+            <ComparisonGrid data={data} />
+          </section>
           <Card
             title={
               <span className="inline-flex items-center gap-1.5">
@@ -61,17 +64,17 @@ export function PropertiesView() {
                   {data.properties.map((r) => (
                     <tr key={r.property_id}>
                       <th scope="row" className="py-2 pr-4 font-medium text-slate-900">{r.name}</th>
-                      <td className="py-2 pr-4 text-right tabular-nums">{r.window.reviews}</td>
-                      <td className="py-2 pr-4 text-right tabular-nums">
+                      <td className="whitespace-nowrap py-2 pr-4 text-right tabular-nums">{r.window.reviews}</td>
+                      <td className="whitespace-nowrap py-2 pr-4 text-right tabular-nums">
                         {formatRating(r.window.avg_rating)} <span className="text-slate-500">({r.window.rated_reviews})</span>
                       </td>
-                      <td className="py-2 pr-4 text-right tabular-nums">
+                      <td className="whitespace-nowrap py-2 pr-4 text-right tabular-nums">
                         {formatPct(r.window.pct_negative)} <span className="text-slate-500">({r.window.negative})</span>
                       </td>
-                      <td className="py-2 pr-4 text-right tabular-nums">
+                      <td className="whitespace-nowrap py-2 pr-4 text-right tabular-nums">
                         {formatRating(r.current_week.avg_rating)} <span className="text-slate-500">({r.current_week.reviews})</span>
                       </td>
-                      <td className="py-2 pr-4 text-right tabular-nums">{formatSigned(r.avg_rating_change)}</td>
+                      <td className="whitespace-nowrap py-2 pr-4 text-right tabular-nums">{formatSigned(r.avg_rating_change)}</td>
                       <td className="py-2">{r.top_complaint ? `${r.top_complaint.topic} (${r.top_complaint.count})` : "—"}</td>
                     </tr>
                   ))}

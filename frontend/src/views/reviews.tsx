@@ -136,6 +136,7 @@ export function ReviewsView() {
       <PageHeader title="Reviews" description="Search and filter every review. Filters are kept in the URL, so you can share or bookmark a view." />
 
       <Card className="mb-4">
+        <h2 className="sr-only">Filters</h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <div className="col-span-2">
             <SearchBox key={searchKey} initial={q} onCommit={commitSearch} />
@@ -207,6 +208,7 @@ export function ReviewsView() {
       </Card>
 
       <Card>
+        <h2 className="sr-only">Results</h2>
         {error ? (
           <ErrorState error={error} onRetry={() => mutate()} />
         ) : !data || isLoading ? (
@@ -223,7 +225,7 @@ export function ReviewsView() {
           <>
             <p className="text-sm text-slate-600" aria-live="polite">
               {plural(data.total, "review")} · page {data.page} of {data.total_pages}
-              {isValidating && <span className="ml-2 text-slate-400">Updating…</span>}
+              {isValidating && <span className="ml-2 text-slate-500">Updating…</span>}
             </p>
             <ul className="divide-y divide-slate-100">
               {data.items.map((r) => (

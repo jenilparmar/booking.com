@@ -26,7 +26,7 @@ function Stat({ label, value, sub, muted }: { label: string; value: string; sub?
   return (
     <div>
       <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className={cx("text-lg font-semibold tabular-nums", muted || value === NA ? "text-slate-400" : "text-slate-900")}>
+      <dd className={cx("text-lg font-semibold tabular-nums", muted || value === NA ? "text-slate-500" : "text-slate-900")}>
         {value}
       </dd>
       {sub && <dd className="text-xs text-slate-500">{sub}</dd>}
@@ -66,7 +66,7 @@ export function ComparisonGrid({ data }: { data: Comparison }) {
                 <dd
                   className={cx(
                     "text-lg font-semibold tabular-nums",
-                    change === null ? "text-slate-400" : change > 0 ? "text-positive" : change < 0 ? "text-negative" : "text-slate-900",
+                    change === null ? "text-slate-500" : change > 0 ? "text-positive" : change < 0 ? "text-negative" : "text-slate-900",
                   )}
                 >
                   {formatSigned(change)}

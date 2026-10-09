@@ -32,7 +32,7 @@ export function KpiCard({
         <span>{label}</span>
         <InfoTip label={label}>{help}</InfoTip>
       </div>
-      <p className={cx("mt-2 text-3xl font-semibold tabular-nums", value === NA ? "text-slate-400" : "text-slate-900")}>
+      <p className={cx("mt-2 text-3xl font-semibold tabular-nums", value === NA ? "text-slate-500" : "text-slate-900")}>
         {value}
       </p>
       {denominator && <p className="mt-1 text-xs text-slate-500">{denominator}</p>}
