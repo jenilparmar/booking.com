@@ -260,6 +260,31 @@ def _normalize_row(
     }
 
 
+def insert_reviews(db: Session, rows: list[dict[str, Any]]) -> Counter[str]:
+    """Batched INSERT ... ON CONFLICT DO NOTHING. Returns inserted counts per property.
+
+    Does not commit; the caller owns the transaction.
+    """
+    inserted: Counter[str] = Counter()
+    for start in range(0, len(rows), INSERT_BATCH):
+        chunk = rows[start : start + INSERT_BATCH]
+        stmt = (
+            pg_insert(Review).values(chunk).on_conflict_do_nothing().returning(Review.property_id)
+        )
+        for (prop,) in db.execute(stmt):
+            inserted[prop] += 1
+    return inserted
+
+
+def normalize_row(
+    raw: dict[str, Any], *, known_properties: set[str], default_source: str, now: datetime
+) -> dict[str, Any]:
+    tz = ZoneInfo(get_settings().business_timezone)
+    return _normalize_row(
+        raw, known_properties=known_properties, default_source=default_source, tz=tz, now=now
+    )
+
+
 def import_file(
     db: Session,
     filename: str,
@@ -316,16 +341,7 @@ def import_file(
 
     inserted_by_prop: Counter[str] = Counter()
     try:
-        for start in range(0, len(valid), INSERT_BATCH):
-            chunk = valid[start : start + INSERT_BATCH]
-            stmt = (
-                pg_insert(Review)
-                .values(chunk)
-                .on_conflict_do_nothing()
-                .returning(Review.property_id)
-            )
-            for (prop,) in db.execute(stmt):
-                inserted_by_prop[prop] += 1
+        inserted_by_prop = insert_reviews(db, valid)
         valid_by_prop = Counter(r["property_id"] for r in valid)
         finished = datetime.now(UTC)
         for prop, run in runs.items():
