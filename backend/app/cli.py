@@ -5,15 +5,18 @@ import json
 import sys
 from pathlib import Path
 
-from app.config import PROJECT_DIR
-from app.db import SessionLocal, engine
+from app.config import get_settings
+from app.db import SessionLocal, make_engine
 from app.migrate import upgrade_to_head
 from app.seed import seed_properties
 
 
 def cmd_migrate(_args: argparse.Namespace) -> int:
-    (PROJECT_DIR / "data").mkdir(exist_ok=True)
-    upgrade_to_head(engine)
+    direct = make_engine(get_settings().migration_database_url, pooled=False)
+    try:
+        upgrade_to_head(direct)
+    finally:
+        direct.dispose()
     with SessionLocal() as db:
         created = seed_properties(db)
     print(f"Migrated to head. Seeded {created} new properties.")

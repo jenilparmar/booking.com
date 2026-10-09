@@ -2,7 +2,6 @@ from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import (
-    JSON,
     CheckConstraint,
     Float,
     ForeignKey,
@@ -12,6 +11,7 @@ from sqlalchemy import (
     Text,
     text,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base, UTCDateTime
@@ -32,9 +32,7 @@ class Property(Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     source_url: Mapped[str | None] = mapped_column(String(500))
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, onupdate=utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow, onupdate=utcnow)
 
     reviews: Mapped[list["Review"]] = relationship(back_populates="property")
 
@@ -43,9 +41,7 @@ class Review(Base):
     __tablename__ = "reviews"
     __table_args__ = (
         CheckConstraint("rating IS NULL OR (rating >= 1 AND rating <= 10)", name="ck_rating_range"),
-        CheckConstraint(
-            "source IN ('live', 'import', 'synthetic')", name="ck_review_source"
-        ),
+        CheckConstraint("source IN ('live', 'import', 'synthetic')", name="ck_review_source"),
         CheckConstraint(
             "sentiment_label IN ('positive', 'neutral', 'negative')", name="ck_sentiment_label"
         ),
@@ -54,12 +50,12 @@ class Review(Base):
             name="ck_sentiment_score_range",
         ),
         CheckConstraint("length(review_text) > 0", name="ck_review_text_nonempty"),
+        CheckConstraint("jsonb_typeof(topic_labels) = 'array'", name="ck_topic_labels_array"),
         Index(
             "uq_reviews_property_source_review_id",
             "property_id",
             "source_review_id",
             unique=True,
-            sqlite_where=text("source_review_id IS NOT NULL"),
             postgresql_where=text("source_review_id IS NOT NULL"),
         ),
         Index("uq_reviews_property_content_hash", "property_id", "content_hash", unique=True),
@@ -67,6 +63,7 @@ class Review(Base):
         Index("ix_reviews_rating", "rating"),
         Index("ix_reviews_sentiment_label", "sentiment_label"),
         Index("ix_reviews_published_at", "published_at"),
+        Index("ix_reviews_topic_labels_gin", "topic_labels", postgresql_using="gin"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -81,16 +78,14 @@ class Review(Base):
     language: Mapped[str | None] = mapped_column(String(16))
     sentiment_label: Mapped[str] = mapped_column(String(16), nullable=False)
     sentiment_score: Mapped[float | None] = mapped_column(Float)
-    topic_labels: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    topic_labels: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb")
+    )
     source: Mapped[str] = mapped_column(String(16), nullable=False)
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    collected_at: Mapped[datetime] = mapped_column(
-        UTCDateTime(), nullable=False, default=utcnow
-    )
+    collected_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False, default=utcnow)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        UTCDateTime(), default=utcnow, onupdate=utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow, onupdate=utcnow)
 
     property: Mapped[Property] = relationship(back_populates="reviews")
 
@@ -114,9 +109,7 @@ class CollectionRun(Base):
         String(64), ForeignKey("properties.id", ondelete="RESTRICT"), nullable=False
     )
     adapter: Mapped[str] = mapped_column(String(32), nullable=False, default="import")
-    started_at: Mapped[datetime] = mapped_column(
-        UTCDateTime(), nullable=False, default=utcnow
-    )
+    started_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False, default=utcnow)
     finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="running")
     discovered_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

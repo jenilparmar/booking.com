@@ -1,8 +1,8 @@
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from alembic import context
 from app import models  # noqa: F401  (registers tables on Base.metadata)
 from app.config import get_settings
 from app.db import Base
@@ -13,7 +13,9 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 if not config.get_main_option("sqlalchemy.url"):
-    config.set_main_option("sqlalchemy.url", get_settings().database_url.replace("%", "%%"))
+    # Alembic runs DDL over the direct (non-pooled) Neon endpoint.
+    url = get_settings().migration_database_url
+    config.set_main_option("sqlalchemy.url", url.replace("%", "%%"))
 
 target_metadata = Base.metadata
 
@@ -24,7 +26,6 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        render_as_batch=True,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -45,9 +46,7 @@ def run_migrations_online() -> None:
 
 
 def _run(connection) -> None:  # type: ignore[no-untyped-def]
-    context.configure(
-        connection=connection, target_metadata=target_metadata, render_as_batch=True
-    )
+    context.configure(connection=connection, target_metadata=target_metadata)
     with context.begin_transaction():
         context.run_migrations()
 

@@ -37,10 +37,20 @@ def test_migration_creates_expected_schema(db: Session) -> None:
         "ix_reviews_property_published",
         "ix_reviews_rating",
         "ix_reviews_sentiment_label",
+        "ix_reviews_topic_labels_gin",
     } <= index_names
-    # No reviewer PII columns.
-    cols = {c["name"] for c in insp.get_columns("reviews")}
-    assert not cols & {"reviewer_name", "reviewer_country", "author", "email"}
+    cols = {c["name"]: c for c in insp.get_columns("reviews")}
+    assert not set(cols) & {"reviewer_name", "reviewer_country", "author", "email"}
+    assert str(cols["topic_labels"]["type"]) == "JSONB"
+    assert cols["published_at"]["type"].timezone is True
+    partial = next(
+        i
+        for i in insp.get_indexes("reviews")
+        if i["name"] == "uq_reviews_property_source_review_id"
+    )
+    assert "source_review_id IS NOT NULL" in str(
+        partial.get("dialect_options", {}).get("postgresql_where")
+    )
 
 
 def test_seed_is_stable_and_idempotent(db: Session) -> None:
@@ -82,7 +92,9 @@ def test_unique_source_review_id_per_property(db: Session) -> None:
         db.commit()
     db.rollback()
     # Same source id on a different property is allowed.
-    db.add(make_review(property_id="chateau-de-venus", source_review_id="R1", content_hash="3" * 64))
+    db.add(
+        make_review(property_id="chateau-de-venus", source_review_id="R1", content_hash="3" * 64)
+    )
     db.commit()
 
 
@@ -114,6 +126,13 @@ def test_foreign_key_integrity(db: Session) -> None:
 
 def test_run_status_constraint(db: Session) -> None:
     db.add(CollectionRun(property_id="olympic-paddington", status="exploded"))
+    with pytest.raises(IntegrityError):
+        db.commit()
+    db.rollback()
+
+
+def test_topic_labels_must_be_array(db: Session) -> None:
+    db.add(make_review(topic_labels={"not": "array"}, content_hash="e" * 64))
     with pytest.raises(IntegrityError):
         db.commit()
     db.rollback()

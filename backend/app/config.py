@@ -8,6 +8,18 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 PROJECT_DIR = BACKEND_DIR.parent
 
 
+def normalize_db_url(v: str | None) -> str | None:
+    if v is None:
+        return None
+    v = v.strip().strip("'\"")
+    if not v:
+        return None
+    for prefix in ("postgres://", "postgresql://"):
+        if v.startswith(prefix):
+            return "postgresql+psycopg://" + v[len(prefix) :]
+    return v
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=(PROJECT_DIR / ".env", BACKEND_DIR / ".env"),
@@ -15,9 +27,19 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    database_url: str = f"sqlite:///{(PROJECT_DIR / 'data' / 'reviews.db').as_posix()}"
+    # Neon pooled connection string (pgbouncer) for the running app.
+    database_url: str = "postgresql+psycopg://localhost:5432/reviews"
+    # Neon non-pooled connection string for Alembic. Falls back to database_url.
+    direct_database_url: str | None = None
+    # Throwaway database used by pytest. Must differ from database_url.
+    test_database_url: str | None = None
+
+    db_pool_size: int = 5
+    db_max_overflow: int = 5
+    db_connect_retries: int = 3
+
     business_timezone: str = "Australia/Sydney"
-    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     rating_scale_min: float = 1.0
     rating_scale_max: float = 10.0
@@ -33,14 +55,14 @@ class Settings(BaseSettings):
 
     api_max_page_size: int = 100
 
-    @field_validator("database_url")
+    @field_validator("database_url", "direct_database_url", "test_database_url", mode="before")
     @classmethod
-    def _use_psycopg3_driver(cls, v: str) -> str:
-        v = v.strip().strip("'\"")
-        for prefix in ("postgres://", "postgresql://"):
-            if v.startswith(prefix):
-                return "postgresql+psycopg://" + v[len(prefix) :]
-        return v
+    def _normalize_urls(cls, v: str | None) -> str | None:
+        return normalize_db_url(v)
+
+    @property
+    def migration_database_url(self) -> str:
+        return self.direct_database_url or self.database_url
 
     @property
     def cors_origin_list(self) -> list[str]:
