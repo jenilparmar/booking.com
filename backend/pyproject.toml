@@ -1,0 +1,47 @@
+[project]
+name = "review-insights-backend"
+version = "0.1.0"
+description = "Hotel review analytics backend (FastAPI + SQLAlchemy)"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "sqlalchemy>=2.0.30",
+    "alembic>=1.13",
+    "python-multipart>=0.0.9",
+    "python-dateutil>=2.9",
+    "vaderSentiment>=3.3.2",
+    "psycopg[binary]>=3.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "httpx>=0.27",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "types-python-dateutil",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W"]
+ignore = ["B008"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+plugins = []
+warn_unused_ignores = true
