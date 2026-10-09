@@ -16,7 +16,9 @@ TZ = ZoneInfo("Australia/Sydney")
 
 
 def _load_generator() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("generate_sample", DATA_DIR / "generate_sample.py")
+    spec = importlib.util.spec_from_file_location(
+        "generate_sample", DATA_DIR / "generate_sample.py"
+    )
     assert spec and spec.loader
     mod = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = mod

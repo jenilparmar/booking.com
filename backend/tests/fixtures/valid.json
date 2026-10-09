@@ -1,0 +1,20 @@
+{
+  "reviews": [
+    {
+      "source_review_id": "FXJ-1",
+      "property_id": "venus-surry-hills",
+      "review_title": "Loud",
+      "review_text": "Loud construction noise started at 7am.",
+      "rating": 5,
+      "published_at": "2026-10-05T09:00:00+11:00",
+      "language": "en"
+    },
+    {
+      "property_id": "chateau-de-venus",
+      "review_text": "Great location, close to the harbour.",
+      "rating": 4.5,
+      "rating_scale_max": 5,
+      "published_at": "2026-10-04T12:00:00+11:00"
+    }
+  ]
+}

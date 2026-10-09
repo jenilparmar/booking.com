@@ -1,0 +1,6 @@
+source_review_id,property_id,review_title,review_text,rating,published_at,language
+FX-1,olympic-paddington,Great,"The room was spotless and the staff were friendly.",9,2026-10-06T10:00:00+11:00,en
+FX-2,olympic-paddington,,"Very noisy at night,   thin walls.",4.5,06/10/2026 21:30,en
+FX-3,venus-surry-hills,Okay,Check-in was slow but the location is great.,,2026-10-01,en
+,chateau-de-venus,,"Overpriced for what you get.",3,2026-09-29T08:00:00Z,
+FX-5,venus-potts-point-sydney,Lovely,Clean and quiet.,10,,en

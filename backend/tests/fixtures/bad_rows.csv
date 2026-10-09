@@ -1,0 +1,9 @@
+source_review_id,property_id,review_title,review_text,rating,published_at,language
+BAD-1,olympic-paddington,,Fine stay.,11,2026-10-01,en
+BAD-2,olympic-paddington,,Fine stay again.,0,2026-10-01,en
+BAD-3,olympic-paddington,,Another stay.,abc,2026-10-01,en
+BAD-4,olympic-paddington,,Yet another stay.,7,not a date,en
+BAD-5,olympic-paddington,,Future stay.,7,2099-01-01,en
+BAD-6,unknown-hotel,,Unknown property.,7,2026-10-01,en
+BAD-7,olympic-paddington,,   ,7,2026-10-01,en
+OK-1,olympic-paddington,,This one is valid and clean.,8,2026-10-01,en
