@@ -1,12 +1,15 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { PageSkeleton } from "@/components/page-skeleton";
-import { OverviewView } from "@/views/overview";
+import { PropertiesView } from "@/views/properties";
+
+export const metadata: Metadata = { title: "Properties" };
 
 export default function Page() {
   return (
     <Suspense fallback={<PageSkeleton />}>
-      <OverviewView />
+      <PropertiesView />
     </Suspense>
   );
 }
